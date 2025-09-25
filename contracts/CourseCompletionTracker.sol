@@ -5,7 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract CourseCompletionTracker is Ownable {
 
-  IERC20 public token;
+  address public tokenAddress;
 
   enum CourseStatus { NotFinished, Finished, Claimed }
 
@@ -19,7 +19,7 @@ contract CourseCompletionTracker is Ownable {
 
 
   constructor(address _tokenAddress) Ownable(msg.sender) {
-    token = IERC20(_tokenAddress);
+    tokenAddress = _tokenAddress;
   }
 
   function addCourse(uint courseId, uint rewardAmount) public onlyOwner {
@@ -45,14 +45,14 @@ contract CourseCompletionTracker is Ownable {
     courseCompletions[msg.sender][courseId] = CourseStatus.Claimed; // Prevent re-claiming
 
     // Transfer tokens to the student
-    bool success = token.transfer(msg.sender, rewardAmount);
+    bool success = IERC20(tokenAddress).transfer(msg.sender, rewardAmount);
     require(success, "Token transfer failed while claiming reward");
     emit RewardClaimed(msg.sender, courseId, rewardAmount);
   }
 
   function withdrawTokens(uint amount) public onlyOwner {
     require(amount > 0, "Amount should be positive");
-    bool success = token.transfer(msg.sender, amount);
+    bool success = IERC20(tokenAddress).transfer(msg.sender, amount);
     require(success, "Token transfer failed while withdrawing tokens");
     emit TokensWithdrawn(msg.sender, amount);
   }
