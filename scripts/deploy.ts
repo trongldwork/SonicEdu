@@ -1,40 +1,20 @@
-import { network } from "hardhat";
-
-const { ethers } = await network.connect({
-  network: "sepolia",
-});
+import hre from "hardhat";
+import TokenTrackerModule from "../ignition/modules/TokenTracker.js";
 
 async function main() {
-  console.log("starting deployment...");
+  const connection = await hre.network.connect();
+  const { token, tracker } = await connection.ignition.deploy(TokenTrackerModule);
+  const [deployer] = await connection.ethers.getSigners();
 
-  // Get the deployer account
-  const [deployer] = await ethers.getSigners();
-  if (deployer.provider) {
-    console.log(`📝 Deploying contracts with account: ${deployer.address}`);
-  }
-  const initialSupply = ethers.parseEther("1000000");
-  // Deploy token
-  const Token = await ethers.getContractFactory("SonicEduToken");
-  const token = await Token.deploy("SonicEduToken", "SET", initialSupply);
-  await token.waitForDeployment();
-  console.log("Token deployed to:", token.target);
+  console.log(`Token deployed to: ${await token.getAddress()}`);
+  console.log(`Tracker deployed to: ${await tracker.getAddress()}`);
+  console.log(`Deployer address: ${deployer.address}`);
 
-  // Deploy tracker
-  const Tracker = await ethers.getContractFactory("CourseCompletionTracker");
-  const tracker = await Tracker.deploy(token.target);
-  await tracker.waitForDeployment();
-  console.log("Tracker deployed to:", tracker.target);
+  const deployerBalance = await token.balanceOf(deployer.address);
+  const trackerBalance = await token.balanceOf(tracker.target);
 
-  // Fund tracker
-  const fundAmount = ethers.parseEther("10000");
-  console.log(`minting ${fundAmount} tokens to tracker...`);
-  await token.mint(tracker.target, fundAmount);
-  console.log("Deployment complete.");
+  console.log("deployer balance:", connection.ethers.formatEther(deployerBalance), "SET");
+  console.log("tracker balance:", connection.ethers.formatEther(trackerBalance), "SET");
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error("❌ Deployment failed:", error);
-    process.exit(1);
-  });
+main().catch(console.error);

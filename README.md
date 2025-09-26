@@ -78,5 +78,11 @@ npx hardhat keystore set SEPOLIA_PRIVATE_KEY
 After setting the variable, you can run the deployment with the Sepolia network:
 
 ```shell
-npx hardhat run scripts\deploy.ts
+npx hardhat ignition deploy ignition/modules/TokenTracker.ts --network sepolia --verify
+```
+
+After sucessful deployment, you can run deploy.ts to see result in the Sepolia network:
+
+```shell
+hardhat run scripts/deploy.ts --network sepolia
 ```
